@@ -1,5 +1,4 @@
-require "minitest/autorun"
-require "open3"
+require "test_helper"
 
 class GitAccessTest < Minitest::Test
 
@@ -20,21 +19,6 @@ class GitAccessTest < Minitest::Test
 
     assert_equal "", result.output
     assert !result.status.success?
-  end
-
-  protected
-
-  class Output < Struct.new(:stdout, :stderr, :status)
-    def output
-      stdout + stderr
-    end
-  end
-
-  def call_with_opts(*opts)
-    binary = File.expand_path("../../bin/git_access", __FILE__)
-    Output.new(
-      *Open3.capture3([binary, *opts].join(" "))
-    )
   end
 
 end
