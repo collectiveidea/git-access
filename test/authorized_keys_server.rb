@@ -18,7 +18,9 @@ class AuthorizedKeysServer
   end
 
   def start
-    ::Thin::Logging.silent = true
+    Thin::Logging.silent = true
+    Thread.abort_on_exception = true
+
     @server_thread = Thread.new do
       Rack::Handler::Thin.run RackHandler.new(@keys), :Port => @port
     end
@@ -31,7 +33,7 @@ class AuthorizedKeysServer
 
   class RackHandler
     def initialize(keys)
-      @keys = keys
+      @keys = keys.map.with_index {|key, user_id| "#{user_id + 1},#{key}" }
     end
 
     def call(env)

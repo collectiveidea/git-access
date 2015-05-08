@@ -11,6 +11,10 @@ import (
 	"syscall"
 )
 
+const (
+	AuthorizedKeysOptions = "no-user-rc,no-X11-forwarding,no-agent-forwarding,no-pty"
+)
+
 func main() {
 	var app = cli.NewApp()
 	app.Name = "git-access"
@@ -55,10 +59,17 @@ func readAuthorizedKeys(keysUrl string) {
 
 	keys, _ := ioutil.ReadAll(response.Body)
 
+	var parts []string
+	var userId, userKey string
+
 	for _, key := range strings.Split(string(keys), "\n") {
+		parts = strings.SplitN(key, ",", 2)
+		userId = parts[0]
+		userKey = parts[1]
+
 		fmt.Println(
-			"command=\"git-access\",no-user-rc,no-X11-forwarding,no-agent-forwarding,no-pty",
-			key,
+			"command=\"git-access --user="+userId+"\","+AuthorizedKeysOptions,
+			userKey,
 		)
 	}
 }
@@ -71,13 +82,16 @@ func processGitRequest(args []string) {
 		os.Exit(1)
 	}
 
-	if action == "git-receive-pack" ||
-		action == "git-upload-pack" ||
-		action == "git-upload-archive" {
-
+	if isValidAction(action) {
 		err = syscall.Exec(fullActionPath, args, []string{})
 		fmt.Println("Woah, failed to execute the action", action, err)
 	} else {
 		os.Exit(1)
 	}
+}
+
+func isValidAction(action string) bool {
+	return action == "git-receive-pack" ||
+		action == "git-upload-pack" ||
+		action == "git-upload-archive"
 }
