@@ -9,7 +9,7 @@ class AuthorizedKeysTest < Minitest::Test
     result = call_with_opts("-A", "--authorized-keys-url=http://localhost:#{server.port}")
 
     keys = result.output.split("\n")
-    assert_equal 3, keys.size
+    assert_equal 3, keys.size, "Invalid count of keys returned: #{result.output.inspect}"
   ensure
     server.shutdown
   end
