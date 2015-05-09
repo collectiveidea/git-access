@@ -36,7 +36,7 @@ class GitAccessServer
       userId = params["user"]
       response = @responses.find {|r| r[:user] == userId.to_i }
 
-      [ response[:response] , { "Content-Type" => "text/plain" }, [ ] ]
+      [ response[:response] , { "Content-Type" => "text/plain" }, [ response[:body] || "" ] ]
     end
   end
 end

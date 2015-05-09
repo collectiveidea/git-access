@@ -23,20 +23,24 @@ class GitAccessTest < Minitest::Test
   end
 
   def test_queries_for_user_permissions_to_the_requested_repository
-    server = GitAccessServer.new([{user: 2, response: 402}, {user: 4, response: 200}])
-      # User 2 Does not have access, nothing runs
-      result = git_access(
-        "git-upload-pack 'test_repo.git'",
-        "--user 2 --permission-check-url=http://localhost:#{server.port}"
-      )
-      assert_equal("Permission denied.\n", result.output)
+    server = GitAccessServer.new([
+      {user: 2, response: 402},
+      {user: 4, response: 200, body: "path/to/real/repo"}
+    ])
 
-      # User 4 Has access, git command is executed
-      result = git_access(
-        "git-upload-pack 'test_repo.git'",
-        "--user 4 --permission-check-url=http://localhost:#{server.port}"
-      )
-      assert_match(/'test_repo.git' does not appear to be a git repository/, result.output)
+    # User 2 Does not have access
+    result = git_access(
+      "git-upload-pack 'test_repo.git'",
+      "--user 2 --permission-check-url=http://localhost:#{server.port}"
+    )
+    assert_equal("Permission denied.\n", result.output)
+
+    # User 4 Has access, git command is executed
+    result = git_access(
+      "git-upload-pack 'test_repo.git'",
+      "--user 4 --permission-check-url=http://localhost:#{server.port}"
+    )
+    assert_match(/'path\/to\/real\/repo' does not appear to be a git repository/, result.output)
   ensure
     server.shutdown
   end
