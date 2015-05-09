@@ -1,48 +1,49 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
-	"strings"
+	"strconv"
 )
 
 const (
 	AuthorizedKeysOptions = "no-user-rc,no-X11-forwarding,no-agent-forwarding,no-pty"
 )
 
+type UserKeys struct {
+	UserId int      `json:"user_id"`
+	Keys   []string `json:"keys"`
+}
+
 // AuthorizedKeys queries the given keysUrl for a list of known SSH public keys.
 // These keys are transformed into the authorized_keys file format, configured
 // such that this tool can turn around and ensure the requesting user has permission
 // to the repository they are requesting.
 //
-// The response is expected to be a new-line seperated text file with a user identifier
-// prepended to the key, seperated by a comma. E.g.
+// The response is expected to be a JSON array with each entry including the user_id
+// and a list of keys for that user:
 //
-//   1,ssh-rsa AAA...==
-//   1,ssh-dsa AAB...==
-//   2,ssh-rsa AAC...==
-//   ...
+//   [
+//     { user_id: 1, keys: ["ssh-rsa AAA...==", "ssh-rsa AAB...=="]},
+//     { user_id: 2, keys: ["ssh-rsa AAD...=="]},
+//     ...
+//   ]
 //
 func AuthorizedKeys(keysUrl string) {
-	allKeys := readKeys(keysUrl)
-
-	var parts []string
-	var userId, userKey string
-	for _, key := range allKeys {
-		parts = strings.SplitN(key, ",", 2)
-		userId = parts[0]
-		userKey = parts[1]
-
-		fmt.Println(
-			"command=\"git-access --user="+userId+"\","+AuthorizedKeysOptions,
-			userKey,
-		)
+	for _, user := range readKeys(keysUrl) {
+		for _, publicKey := range user.Keys {
+			fmt.Println(
+				"command=\"git-access --user="+strconv.Itoa(user.UserId)+"\","+AuthorizedKeysOptions,
+				publicKey,
+			)
+		}
 	}
 }
 
-func readKeys(url string) []string {
+func readKeys(url string) (keysList []UserKeys) {
 	response, err := http.Get(url)
 
 	if err != nil {
@@ -51,6 +52,11 @@ func readKeys(url string) []string {
 	}
 	defer response.Body.Close()
 
-	keys, _ := ioutil.ReadAll(response.Body)
-	return strings.Split(string(keys), "\n")
+	responseBody, _ := ioutil.ReadAll(response.Body)
+	if err = json.Unmarshal(responseBody, &keysList); err != nil {
+		fmt.Println("Error parsing JSON response", err)
+		os.Exit(1)
+	}
+
+	return
 }

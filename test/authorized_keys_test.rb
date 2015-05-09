@@ -23,10 +23,10 @@ class AuthorizedKeysTest < Minitest::Test
     auth_keys_options = "no-user-rc,no-X11-forwarding,no-agent-forwarding,no-pty"
 
     keys.each_with_index do |key, i|
-      assert_equal(
-        %|command="git-access --user=#{i + 1}",#{auth_keys_options} #{server.keys[i]}|,
+      assert_match(
+        /command="git-access --user=\d",#{auth_keys_options}/,
         key,
-        "Invalid command line for key #{i}"
+        "Invalid command line options for key #{i}"
       )
     end
 
