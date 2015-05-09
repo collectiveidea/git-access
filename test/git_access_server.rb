@@ -6,9 +6,9 @@ class GitAccessServer
   attr_reader :port
   attr_reader :keys
 
-  def initialize(response: 200)
+  def initialize(responses)
     @port = (rand * 10000 + 1000).to_i
-    @response = response
+    @responses = responses
     start
   end
 
@@ -17,7 +17,7 @@ class GitAccessServer
     Thread.abort_on_exception = true
 
     @server_thread = Thread.new do
-      Rack::Handler::Thin.run RackHandler.new(@response), :Port => @port
+      Rack::Handler::Thin.run RackHandler.new(@responses), :Port => @port
     end
     sleep 1
   end
@@ -27,12 +27,16 @@ class GitAccessServer
   end
 
   class RackHandler
-    def initialize(response)
-      @response_code = response
+    def initialize(responses)
+      @responses = responses
     end
 
     def call(env)
-      [ @response_code, { "Content-Type" => "text/plain" }, [ ] ]
+      params = Rack::Utils.parse_nested_query(env["QUERY_STRING"])
+      userId = params["user"]
+      response = @responses.find {|r| r[:user] == userId.to_i }
+
+      [ response[:response] , { "Content-Type" => "text/plain" }, [ ] ]
     end
   end
 end

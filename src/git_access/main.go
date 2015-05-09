@@ -42,13 +42,19 @@ func main() {
 			AuthorizedKeys(keysUrl)
 		} else {
 			url := c.String("permission-check-url")
+			userId := c.String("user")
 
 			if url == "" {
 				fmt.Println("Missing required parameter --permission-check-url")
 				os.Exit(1)
 			}
 
-			GitRequest(url)
+			if userId == "" {
+				fmt.Println("Missing required parameter --user")
+				os.Exit(1)
+			}
+
+			GitRequest(userId, url)
 		}
 	}
 

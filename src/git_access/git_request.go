@@ -19,10 +19,13 @@ type GitCommandRequest struct {
 // GitRequest takes the requested git command, ensures the user has
 // permission to the given repository, and rewrites itself to let
 // the git command with it's work (clone or push) to the right repository.
-func GitRequest(permissionUrl string) {
+// The permissions request will hit the configured permissionUrl, adding
+// two parameters: user and repository. This request needs to return 2xx for
+// success, and >= 400 for failure.
+func GitRequest(userId string, permissionUrl string) {
 	command := parseOriginalCommand()
 
-	if repoAccessAllowed(command, permissionUrl) {
+	if repoAccessAllowed(command, userId, permissionUrl) {
 		err := syscall.Exec(command.BinaryPath, command.CommandParts, []string{})
 		fmt.Println("Failed to execute the command", command.FullCommand, err)
 	}
@@ -74,8 +77,15 @@ func isValidAction(action string) bool {
 		action == "git-upload-archive"
 }
 
-func repoAccessAllowed(command GitCommandRequest, permissionUrl string) bool {
-	response, err := http.Get(permissionUrl)
+func repoAccessAllowed(command GitCommandRequest, userId string, permissionUrl string) bool {
+	request, _ := http.NewRequest("GET", permissionUrl, nil)
+	values := request.URL.Query()
+
+	values.Add("user", userId)
+	values.Add("repository", command.Repository)
+	request.URL.RawQuery = values.Encode()
+
+	response, err := http.DefaultClient.Do(request)
 	if err != nil {
 		fmt.Println("Net Error:", err)
 		os.Exit(1)
