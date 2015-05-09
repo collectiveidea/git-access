@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"strconv"
 )
 
@@ -32,8 +31,13 @@ type UserKeys struct {
 //     ...
 //   ]
 //
-func AuthorizedKeys(keysUrl string) {
-	for _, user := range readKeys(keysUrl) {
+func RequestAuthorizedKeys(keysUrl string) error {
+	users, err := readKeys(keysUrl)
+	if err != nil {
+		return err
+	}
+
+	for _, user := range users {
 		for _, publicKey := range user.Keys {
 			fmt.Println(
 				"command=\"git-access --user="+strconv.Itoa(user.UserId)+"\","+AuthorizedKeysOptions,
@@ -41,21 +45,24 @@ func AuthorizedKeys(keysUrl string) {
 			)
 		}
 	}
+
+	return nil
 }
 
-func readKeys(url string) (keysList []UserKeys) {
+func readKeys(url string) (keysList []UserKeys, err error) {
 	response, err := http.Get(url)
 
 	if err != nil {
-		fmt.Println("Net Error:", err)
-		os.Exit(1)
+		err = fmt.Errorf("Error receiving keys", err)
+		return
 	}
 	defer response.Body.Close()
 
 	responseBody, _ := ioutil.ReadAll(response.Body)
-	if err = json.Unmarshal(responseBody, &keysList); err != nil {
-		fmt.Println("Error parsing JSON response", err)
-		os.Exit(1)
+	err = json.Unmarshal(responseBody, &keysList)
+
+	if err != nil {
+		err = fmt.Errorf("Error parsing response", err)
 	}
 
 	return
