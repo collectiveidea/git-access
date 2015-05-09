@@ -31,50 +31,48 @@ func main() {
 	}
 
 	app.Action = func(c *cli.Context) {
+		var err error
+
 		if c.Bool("authorized-keys") {
-			authorizedKeysRequest(c)
+			err = authorizedKeysRequest(c)
 		} else {
-			gitRequest(c)
+			err = gitRequest(c)
+		}
+
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
 		}
 	}
 
 	app.Run(os.Args)
 }
 
-func authorizedKeysRequest(c *cli.Context) {
+func authorizedKeysRequest(c *cli.Context) error {
 	keysUrl := c.String("authorized-keys-url")
 
 	if keysUrl == "" {
-		fmt.Println("Error: --authorized-keys-url is required when --authorized-keys/-A is used")
-		os.Exit(1)
+		return fmt.Errorf("Error: --authorized-keys-url is required when --authorized-keys/-A is used")
 	}
 
-	err := RequestAuthorizedKeys(keysUrl)
-
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	return RequestAuthorizedKeys(keysUrl)
 }
 
-func gitRequest(c *cli.Context) {
-	permissionsUrl := c.String("permission-check-url")
-	if permissionsUrl == "" {
-		fmt.Println("Missing required parameter --permission-check-url")
-		os.Exit(1)
+func gitRequest(c *cli.Context) error {
+	permissionCheckUrl := c.String("permission-check-url")
+	if permissionCheckUrl == "" {
+		return fmt.Errorf("Missing required parameter --permission-check-url")
 	}
 
 	userId := c.String("user")
 	if userId == "" {
-		fmt.Println("Missing required parameter --user")
-		os.Exit(1)
+		return fmt.Errorf("Missing required parameter --user")
 	}
 
 	sshCommand := os.Getenv("SSH_ORIGINAL_COMMAND")
 	if sshCommand == "" {
-		fmt.Println("No ssh command found")
-		os.Exit(1)
+		return fmt.Errorf("No ssh command found")
 	}
 
-	GitRequest(userId, permissionsUrl)
+	return RequestGitAccess(sshCommand, userId, permissionCheckUrl)
 }

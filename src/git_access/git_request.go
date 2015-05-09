@@ -9,66 +9,72 @@ import (
 	"syscall"
 )
 
-type GitCommandRequest struct {
-	FullCommand  string
-	CommandParts []string
-	BinaryPath   string
-	Repository   string
+type CommandRequest struct {
+	command      string
+	commandParts []string
+	commandPath  string
+
+	user               string
+	permissionCheckUrl string
+	repository         string
 }
 
-// GitRequest takes the requested git command, ensures the user has
+// RequestGitAccess takes the requested git command, ensures the user has
 // permission to the given repository, and rewrites itself to let
 // the git command with it's work (clone or push) to the right repository.
 // The permissions request will hit the configured permissionUrl, adding
 // two parameters: user and repository. This request needs to return 2xx for
-// success, and >= 400 for failure.
-func GitRequest(userId string, permissionUrl string) {
-	command := parseOriginalCommand()
+// allowed, and >= 400 for denied.
+func RequestGitAccess(gitCommand string, userId string, permissionCheckUrl string) error {
+	request, err := validateRequest(gitCommand, userId, permissionCheckUrl)
 
-	if repoAccessAllowed(command, userId, permissionUrl) {
-		err := syscall.Exec(command.BinaryPath, command.CommandParts, []string{})
-		fmt.Println("Failed to execute the command", command.FullCommand, err)
+	if err != nil {
+		return err
 	}
 
-	os.Exit(1)
+	if repoAccessAllowed(request) {
+		return fmt.Errorf(
+			"Failed to execute command.",
+			executeOriginalRequest(request),
+		)
+	} else {
+		return fmt.Errorf("Permission denied.")
+	}
 }
 
-func parseOriginalCommand() GitCommandRequest {
-	fullCommand := os.Getenv("SSH_ORIGINAL_COMMAND")
+func validateRequest(command string, userId string, permissionCheckUrl string) (request CommandRequest, err error) {
+	commandParts, _ := shellwords.Parse(command)
+	binary := commandParts[0]
 
-	if fullCommand == "" {
-		fmt.Println("No original command specified. Exiting")
-		os.Exit(1)
+	if !isValidAction(binary) {
+		err = fmt.Errorf("Permission denied.")
+		return
 	}
 
-	commandParts, _ := shellwords.Parse(fullCommand)
-	action := commandParts[0]
-
-	if !isValidAction(action) {
-		os.Exit(1)
-	}
-
-	binaryPath, err := exec.LookPath(action)
+	binaryPath, err := exec.LookPath(binary)
 	if err != nil {
-		fmt.Println("Unable to find the binary", action)
-		os.Exit(1)
+		err = fmt.Errorf("Unknown command.", binary)
+		return
 	}
 
-	var repositoryName string
-
+	var repository string
 	if len(commandParts) > 1 {
-		repositoryName = commandParts[1]
+		repository = commandParts[1]
 	} else {
-		fmt.Println("Specify the repository.")
-		os.Exit(1)
+		err = fmt.Errorf("Missing repository.")
+		return
 	}
 
-	return GitCommandRequest{
-		FullCommand:  fullCommand,
-		CommandParts: commandParts,
-		BinaryPath:   binaryPath,
-		Repository:   repositoryName,
+	request = CommandRequest{
+		command:            command,
+		commandParts:       commandParts,
+		commandPath:        binaryPath,
+		user:               userId,
+		permissionCheckUrl: permissionCheckUrl,
+		repository:         repository,
 	}
+
+	return
 }
 
 func isValidAction(action string) bool {
@@ -77,15 +83,15 @@ func isValidAction(action string) bool {
 		action == "git-upload-archive"
 }
 
-func repoAccessAllowed(command GitCommandRequest, userId string, permissionUrl string) bool {
-	request, _ := http.NewRequest("GET", permissionUrl, nil)
-	values := request.URL.Query()
+func repoAccessAllowed(request CommandRequest) bool {
+	permissionCheck, _ := http.NewRequest("GET", request.permissionCheckUrl, nil)
+	values := permissionCheck.URL.Query()
 
-	values.Add("user", userId)
-	values.Add("repository", command.Repository)
-	request.URL.RawQuery = values.Encode()
+	values.Add("user", request.user)
+	values.Add("repository", request.repository)
+	permissionCheck.URL.RawQuery = values.Encode()
 
-	response, err := http.DefaultClient.Do(request)
+	response, err := http.DefaultClient.Do(permissionCheck)
 	if err != nil {
 		fmt.Println("Net Error:", err)
 		os.Exit(1)
@@ -93,4 +99,8 @@ func repoAccessAllowed(command GitCommandRequest, userId string, permissionUrl s
 
 	response.Body.Close()
 	return response.StatusCode >= 200 && response.StatusCode < 300
+}
+
+func executeOriginalRequest(request CommandRequest) error {
+	return syscall.Exec(request.commandPath, request.commandParts, []string{})
 }
