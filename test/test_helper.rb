@@ -9,10 +9,10 @@ class Minitest::Test
     end
   end
 
-  def call_with_opts(*opts)
-    binary = File.expand_path("../../bin/git_access", __FILE__)
+  def git_access(command, *params)
+    git_access = File.expand_path("../../bin/git_access", __FILE__)
     Output.new(
-      *Open3.capture3([binary, *opts].join(" "))
+      *Open3.capture3({"SSH_ORIGINAL_COMMAND" => command}, git_access, *params)
     )
   end
 

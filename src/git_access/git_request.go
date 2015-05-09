@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/codegangsta/cli"
+	shellwords "github.com/mattn/go-shellwords"
 	"os"
 	"os/exec"
 	"syscall"
@@ -12,7 +13,15 @@ import (
 // permission to the given repository, and rewrites itself to let
 // the git command with it's work (clone or push) to the right repository.
 func GitRequest(c *cli.Context) {
-	action := c.Args()[0]
+	originalAction := os.Getenv("SSH_ORIGINAL_COMMAND")
+
+	if originalAction == "" {
+		fmt.Println("No original command specified. Exiting")
+		os.Exit(1)
+	}
+
+	commandParts, _ := shellwords.Parse(originalAction)
+	action := commandParts[0]
 
 	fullActionPath, err := exec.LookPath(action)
 	if err != nil {
@@ -21,8 +30,8 @@ func GitRequest(c *cli.Context) {
 	}
 
 	if isValidAction(action) {
-		err = syscall.Exec(fullActionPath, c.Args(), []string{})
-		fmt.Println("Failed to execute the command", action, err)
+		err = syscall.Exec(fullActionPath, commandParts, []string{})
+		fmt.Println("Failed to execute the command", commandParts, err)
 	}
 
 	os.Exit(1)
