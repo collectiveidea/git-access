@@ -18,8 +18,15 @@ func main() {
 		},
 		cli.StringFlag{
 			Name:  "authorized-keys-url",
-			Value: "",
 			Usage: "HTTP(S) Endpoint for querying valid public SSH keys. Only valid when using -A.",
+		},
+		cli.StringFlag{
+			Name:  "user,U",
+			Usage: "Unique User identifier for git access permissions check",
+		},
+		cli.StringFlag{
+			Name:  "permission-check-url",
+			Usage: "HTTP(S) Endpoint for querying repository permissions",
 		},
 	}
 
@@ -34,7 +41,14 @@ func main() {
 
 			AuthorizedKeys(keysUrl)
 		} else {
-			GitRequest(c)
+			url := c.String("permission-check-url")
+
+			if url == "" {
+				fmt.Println("Missing required parameter --permission-check-url")
+				os.Exit(1)
+			}
+
+			GitRequest(url)
 		}
 	}
 

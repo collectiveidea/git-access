@@ -2,18 +2,13 @@ require 'rack'
 require 'thin'
 require 'json'
 
-class AuthorizedKeysServer
+class GitAccessServer
   attr_reader :port
   attr_reader :keys
 
-  def initialize
+  def initialize(response: 200)
     @port = (rand * 10000 + 1000).to_i
-
-    @keys = [
-      {user_id: 1, keys: ["ssh-rsa AAA1...== something@example"]},
-      {user_id: 2, keys: ["ssh-dsa ABC2...==", "ssh-rsa AAA3...== me@host"]}
-    ]
-
+    @response = response
     start
   end
 
@@ -22,7 +17,7 @@ class AuthorizedKeysServer
     Thread.abort_on_exception = true
 
     @server_thread = Thread.new do
-      Rack::Handler::Thin.run RackHandler.new(@keys), :Port => @port
+      Rack::Handler::Thin.run RackHandler.new(@response), :Port => @port
     end
     sleep 1
   end
@@ -32,12 +27,12 @@ class AuthorizedKeysServer
   end
 
   class RackHandler
-    def initialize(keys)
-      @keys = keys
+    def initialize(response)
+      @response_code = response
     end
 
     def call(env)
-      [ 200, { "Content-Type" => "application/json" }, [ @keys.to_json ] ]
+      [ @response_code, { "Content-Type" => "text/plain" }, [ ] ]
     end
   end
 end
