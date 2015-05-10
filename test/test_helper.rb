@@ -10,7 +10,7 @@ class Minitest::Test
   end
 
   def git_access(command, params = nil)
-    git_access = File.expand_path("../../bin/git_access", __FILE__)
+    git_access = File.expand_path("../../bin/git-access", __FILE__)
     Output.new(
       *Open3.capture3({"SSH_ORIGINAL_COMMAND" => command}, "#{git_access} #{params}")
     )
