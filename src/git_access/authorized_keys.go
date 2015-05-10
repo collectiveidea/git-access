@@ -31,7 +31,7 @@ type UserKeys struct {
 //     ...
 //   ]
 //
-func RequestAuthorizedKeys(keysUrl string) error {
+func RequestAuthorizedKeys(commandBinary string, keysUrl string) error {
 	users, err := readKeys(keysUrl)
 	if err != nil {
 		return err
@@ -40,7 +40,7 @@ func RequestAuthorizedKeys(keysUrl string) error {
 	for _, user := range users {
 		for _, publicKey := range user.Keys {
 			fmt.Println(
-				"command=\"git-access --user="+strconv.Itoa(user.UserId)+"\","+AuthorizedKeysOptions,
+				"command=\""+commandBinary+" --user="+strconv.Itoa(user.UserId)+"\","+AuthorizedKeysOptions,
 				publicKey,
 			)
 		}

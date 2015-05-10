@@ -21,6 +21,11 @@ func main() {
 			Usage: "[Authorized Keys] HTTP(S) Endpoint for querying valid public SSH keys. Only valid when using -A.",
 		},
 		cli.StringFlag{
+			Name:  "authorize-command",
+			Value: "git-access",
+			Usage: "[Authorized Keys] Path to binary that will be inserted into the command option of the returned Authorized Keys.",
+		},
+		cli.StringFlag{
 			Name:  "user,U",
 			Usage: "[Git Access] Unique User identifier for git access permissions check.",
 		},
@@ -55,7 +60,7 @@ func authorizedKeysRequest(c *cli.Context) error {
 		return fmt.Errorf("Error: --authorized-keys-url is required when --authorized-keys/-A is used")
 	}
 
-	return RequestAuthorizedKeys(keysUrl)
+	return RequestAuthorizedKeys(c.String("authorize-command"), keysUrl)
 }
 
 func gitRequest(c *cli.Context) error {
