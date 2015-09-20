@@ -57,7 +57,7 @@ func authorizedKeysRequest(c *cli.Context) error {
 	keysUrl := c.String("authorized-keys-url")
 
 	if keysUrl == "" {
-		return fmt.Errorf("Error: --authorized-keys-url is required when --authorized-keys/-A is used")
+		return fmt.Errorf("The flag --authorized-keys-url is required when --authorized-keys/-A is used. See --help for more info.")
 	}
 
 	return RequestAuthorizedKeys(c.String("authorize-command"), keysUrl)
@@ -66,12 +66,12 @@ func authorizedKeysRequest(c *cli.Context) error {
 func gitRequest(c *cli.Context) error {
 	permissionCheckUrl := c.String("permission-check-url")
 	if permissionCheckUrl == "" {
-		return fmt.Errorf("Missing required parameter --permission-check-url")
+		return fmt.Errorf("Missing required parameter --permission-check-url. See --help for more info.")
 	}
 
 	userId := c.String("user")
 	if userId == "" {
-		return fmt.Errorf("Missing required parameter --user")
+		return fmt.Errorf("Missing required parameter --user. See --help for more info.")
 	}
 
 	sshCommand := os.Getenv("SSH_ORIGINAL_COMMAND")
