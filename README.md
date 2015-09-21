@@ -93,8 +93,17 @@ Match User git
 
 Restart SSH to apply the new configuration and enjoy!
 
+## Developing
+
+`git-access` is managed and built with [gb](http://getgb.io/) so you'll need that installed first.
+
+After cloning this repository, you can build `git-access` with `gb build`.
+
+Due to the nature of the system, the tests are high level that set up actual web servers and check that the full communication process works. As such, the easiest way I know to do this is through Ruby, so the tests require Ruby 2.0 or greater. Run tests with `rake`.
+
 ## Contributing
 
 `git-access` is open source and contributions are encouraged! No contribution is too small.
 
 Please see the [contribution guidelines](CONTRIBUTING.md) for more information.
+
