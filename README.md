@@ -27,8 +27,8 @@ The authorization step is when the user's SSH keys are checked against the known
 
 ```json
 [
-  {user: "1", keys: ["ssh-rsa AAA...==", "ssh-rsa AAB..=="]},
-  {user: "2", keys: ["ssh-rsa AAD...=="]},
+  {"user": "1", "keys": ["ssh-rsa AAA...==", "ssh-rsa AAB..=="]},
+  {"user": "2", "keys": ["ssh-rsa AAD...=="]},
 ]
 ```
 
