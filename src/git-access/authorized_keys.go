@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 )
 
 const (
@@ -13,8 +12,8 @@ const (
 )
 
 type UserKeys struct {
-	UserId int      `json:"user_id"`
-	Keys   []string `json:"keys"`
+	User string   `json:"user"`
+	Keys []string `json:"keys"`
 }
 
 // AuthorizedKeys queries the given keysUrl for a list of known SSH public keys.
@@ -26,8 +25,8 @@ type UserKeys struct {
 // and a list of keys for that user:
 //
 //   [
-//     { user_id: 1, keys: ["ssh-rsa AAA...==", "ssh-rsa AAB...=="]},
-//     { user_id: 2, keys: ["ssh-rsa AAD...=="]},
+//     { user: "1", keys: ["ssh-rsa AAA...==", "ssh-rsa AAB...=="]},
+//     { user: "2", keys: ["ssh-rsa AAD...=="]},
 //     ...
 //   ]
 //
@@ -40,7 +39,7 @@ func RequestAuthorizedKeys(commandBinary string, keysUrl string) error {
 	for _, user := range users {
 		for _, publicKey := range user.Keys {
 			fmt.Println(
-				"command=\""+commandBinary+" --user="+strconv.Itoa(user.UserId)+"\","+AuthorizedKeysOptions,
+				"command=\""+commandBinary+" --user="+user.User+"\","+AuthorizedKeysOptions,
 				publicKey,
 			)
 		}
