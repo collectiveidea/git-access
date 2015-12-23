@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 )
@@ -55,8 +54,7 @@ func readKeys(url string) (keysList []UserKeys) {
 	}
 	defer response.Body.Close()
 
-	responseBody, _ := ioutil.ReadAll(response.Body)
-	err = json.Unmarshal(responseBody, &keysList)
+	err = json.NewDecoder(response.Body).Decode(&keysList)
 
 	if err != nil {
 		log.Fatalf("Error parsing keys response", err)
