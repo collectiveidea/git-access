@@ -13,7 +13,7 @@ const (
 )
 
 type UserKeys struct {
-	UserId string   `json:"user_id"`
+	UserId int      `json:"user_id"`
 	Keys   []string `json:"keys"`
 }
 
@@ -36,8 +36,11 @@ func RequestAuthorizedKeys(commandBinary string, keysUrl string) {
 
 	for _, user := range users {
 		for _, publicKey := range user.Keys {
-			fmt.Println(
-				"command=\""+commandBinary+" --user="+user.UserId+"\","+AuthorizedKeysOptions,
+			fmt.Printf(
+				"command=\"%s --user=%d\",%s %s\n",
+				commandBinary,
+				user.UserId,
+				AuthorizedKeysOptions,
 				publicKey,
 			)
 		}

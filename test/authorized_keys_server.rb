@@ -10,8 +10,8 @@ class AuthorizedKeysServer
     @port = (rand * 10000 + 1000).to_i
 
     @keys = [
-      {user_id: "1", keys: ["ssh-rsa AAA1...== something@example"]},
-      {user_id: "2", keys: ["ssh-dsa ABC2...==", "ssh-rsa AAA3...== me@host"]}
+      {user_id: 1, keys: ["ssh-rsa AAA1...== something@example"]},
+      {user_id: 2, keys: ["ssh-dsa ABC2...==", "ssh-rsa AAA3...== me@host"]}
     ]
 
     start
