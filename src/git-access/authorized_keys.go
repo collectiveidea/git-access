@@ -13,8 +13,8 @@ const (
 )
 
 type UserKeys struct {
-	User string   `json:"user"`
-	Keys []string `json:"keys"`
+	UserId string   `json:"user_id"`
+	Keys   []string `json:"keys"`
 }
 
 // AuthorizedKeys queries the given keysUrl for a list of known SSH public keys.
@@ -37,7 +37,7 @@ func RequestAuthorizedKeys(commandBinary string, keysUrl string) {
 	for _, user := range users {
 		for _, publicKey := range user.Keys {
 			fmt.Println(
-				"command=\""+commandBinary+" --user="+user.User+"\","+AuthorizedKeysOptions,
+				"command=\""+commandBinary+" --user="+user.UserId+"\","+AuthorizedKeysOptions,
 				publicKey,
 			)
 		}
