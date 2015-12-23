@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/codegangsta/cli"
+	"log"
+	"log/syslog"
 	"os"
 )
 
@@ -12,6 +14,10 @@ func main() {
 	app.Usage = "Protect access to Git repositories over SSH"
 
 	app.Flags = []cli.Flag{
+		cli.BoolFlag{
+			Name:  "syslog",
+			Usage: "Enable logging to syslog",
+		},
 		cli.BoolFlag{
 			Name:  "authorized-keys,A",
 			Usage: "Toggle Authorized Keys mode. If not set will be in Git Access mode.",
@@ -36,6 +42,20 @@ func main() {
 	}
 
 	app.Action = func(c *cli.Context) {
+		if c.Bool("syslog") {
+			writer, err := syslog.New(syslog.LOG_INFO, "git-access")
+			if err != nil {
+				fmt.Printf("Unable to enable syslog:\n")
+				fmt.Println(err)
+
+				os.Exit(1)
+			}
+
+			// Turn off go's own logging timestamps
+			log.SetFlags(0)
+			log.SetOutput(writer)
+		}
+
 		if c.Bool("authorized-keys") {
 			authorizedKeysRequest(c)
 		} else {
@@ -50,7 +70,7 @@ func authorizedKeysRequest(c *cli.Context) {
 	keysUrl := c.String("authorized-keys-url")
 
 	if keysUrl == "" {
-		fmt.Printf("The flag --authorized-keys-url is required when --authorized-keys/-A is used. See --help for more info.")
+		fmt.Println("The flag --authorized-keys-url is required when --authorized-keys/-A is used. See --help for more info.")
 		os.Exit(1)
 	}
 
@@ -60,19 +80,19 @@ func authorizedKeysRequest(c *cli.Context) {
 func gitRequest(c *cli.Context) {
 	permissionCheckUrl := c.String("permission-check-url")
 	if permissionCheckUrl == "" {
-		fmt.Printf("Missing required parameter --permission-check-url. See --help for more info.")
+		fmt.Println("Missing required parameter --permission-check-url. See --help for more info.")
 		os.Exit(1)
 	}
 
 	userId := c.String("user")
 	if userId == "" {
-		fmt.Printf("Missing required parameter --user. See --help for more info.")
+		fmt.Println("Missing required parameter --user. See --help for more info.")
 		os.Exit(1)
 	}
 
 	sshCommand := os.Getenv("SSH_ORIGINAL_COMMAND")
 	if sshCommand == "" {
-		fmt.Printf("No ssh command found")
+		fmt.Println("No ssh command found")
 		os.Exit(1)
 	}
 

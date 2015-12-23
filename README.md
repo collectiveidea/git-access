@@ -55,6 +55,15 @@ git-access \
   --permission-check-url=  # The URL which will check if the user has access or not.
 ```
 
+### Global Options
+
+git-access also supports the following flags regardless of execution mode:
+
+```
+git-access \
+  --syslog                 # Enable logging to a local syslog daemon. Will log under info as "git-access".
+```
+
 ## Server Configuration
 
 The following is the recommended way of configuring `git-access` on servers. The `AuthorizedKeysCommand` works best when it is given a single binary file to run, thus it is recommended to set up shell scripts that call out to `git-access` with the required parameters.  You'll need two of these such scripts:
