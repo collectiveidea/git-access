@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 )
 
@@ -30,11 +31,8 @@ type UserKeys struct {
 //     ...
 //   ]
 //
-func RequestAuthorizedKeys(commandBinary string, keysUrl string) error {
-	users, err := readKeys(keysUrl)
-	if err != nil {
-		return err
-	}
+func RequestAuthorizedKeys(commandBinary string, keysUrl string) {
+	users := readKeys(keysUrl)
 
 	for _, user := range users {
 		for _, publicKey := range user.Keys {
@@ -44,16 +42,13 @@ func RequestAuthorizedKeys(commandBinary string, keysUrl string) error {
 			)
 		}
 	}
-
-	return nil
 }
 
-func readKeys(url string) (keysList []UserKeys, err error) {
+func readKeys(url string) (keysList []UserKeys) {
 	response, err := http.Get(url)
 
 	if err != nil {
-		err = fmt.Errorf("Error receiving keys", err)
-		return
+		log.Fatalf("Error receiving keys", err)
 	}
 	defer response.Body.Close()
 
@@ -61,7 +56,7 @@ func readKeys(url string) (keysList []UserKeys, err error) {
 	err = json.Unmarshal(responseBody, &keysList)
 
 	if err != nil {
-		err = fmt.Errorf("Error parsing response", err)
+		log.Fatalf("Error parsing keys response", err)
 	}
 
 	return

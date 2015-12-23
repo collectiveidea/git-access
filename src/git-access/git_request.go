@@ -1,11 +1,10 @@
 package main
 
 import (
-	"fmt"
 	shellwords "github.com/mattn/go-shellwords"
 	"io/ioutil"
+	"log"
 	"net/http"
-	"os"
 	"os/exec"
 	"strings"
 	"syscall"
@@ -38,44 +37,37 @@ func (self *CommandRequest) RewriteRepository(newRepo string) {
 // This permissions request can also return in the body of the response the local
 // path to the real repository on disk, in which the command will be rewritten
 // to point to the actual repository before being exec'd.
-func RequestGitAccess(gitCommand string, userId string, permissionCheckUrl string) error {
-	request, err := validateRequest(gitCommand, userId, permissionCheckUrl)
-
-	if err != nil {
-		return err
-	}
+func RequestGitAccess(gitCommand string, userId string, permissionCheckUrl string) {
+	request := validateRequest(gitCommand, userId, permissionCheckUrl)
 
 	if repoAccessAllowed(&request) {
-		return fmt.Errorf(
+		log.Fatalf(
 			"Failed to execute command.",
 			executeOriginalRequest(&request),
 		)
 	} else {
-		return fmt.Errorf("Permission denied.")
+		log.Fatalf("Permission denied.")
 	}
 }
 
-func validateRequest(command string, userId string, permissionCheckUrl string) (request CommandRequest, err error) {
+func validateRequest(command string, userId string, permissionCheckUrl string) (request CommandRequest) {
 	commandParts, _ := shellwords.Parse(command)
 	binary := commandParts[0]
 
 	if !isValidAction(binary) {
-		err = fmt.Errorf("Permission denied.")
-		return
+		log.Fatalf("Permission denied.")
 	}
 
 	binaryPath, err := exec.LookPath(binary)
 	if err != nil {
-		err = fmt.Errorf("Unknown command.", binary)
-		return
+		log.Fatalf("Unknown command.", binary)
 	}
 
 	var repository string
 	if len(commandParts) > 1 {
 		repository = commandParts[1]
 	} else {
-		err = fmt.Errorf("Missing repository.")
-		return
+		log.Fatalf("Missing repository.")
 	}
 
 	request = CommandRequest{
@@ -106,8 +98,7 @@ func repoAccessAllowed(request *CommandRequest) bool {
 
 	response, err := http.DefaultClient.Do(permissionCheck)
 	if err != nil {
-		fmt.Println("Net Error:", err)
-		os.Exit(1)
+		log.Fatalf("Net Error: %v\n", err)
 	}
 	defer response.Body.Close()
 

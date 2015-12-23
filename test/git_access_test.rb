@@ -15,7 +15,7 @@ class GitAccessTest < Minitest::Test
       )
 
       result = git_access("cat /etc/passwd", args)
-      assert_equal "Permission denied.\n", result.output
+      assert_match(/Permission denied/, result.output)
       assert !result.status.success?
     end
   ensure
@@ -33,7 +33,7 @@ class GitAccessTest < Minitest::Test
       "git-upload-pack 'test_repo.git'",
       "--user 2 --permission-check-url=http://localhost:#{server.port}"
     )
-    assert_equal("Permission denied.\n", result.output)
+    assert_match(/Permission denied/, result.output)
 
     # User 4 Has access, git command is executed
     result = git_access(
