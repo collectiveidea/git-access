@@ -2,20 +2,20 @@
 
 
 [[projects]]
+  branch = "master"
   name = "github.com/codegangsta/cli"
   packages = ["."]
-  revision = "c31a7975863e7810c92e2e288a9ab074f9a88f29"
-  version = "v1.11.1"
+  revision = "7ace96b43d4bdc46f81d0d1219742b2469874cf6"
 
 [[projects]]
+  branch = "master"
   name = "github.com/mattn/go-shellwords"
   packages = ["."]
-  revision = "f4e566c536cf69158e808ec28ef4182a37fdc981"
-  version = "v1.0.0"
+  revision = "95c860c1895b21b58903abdd1d9c591560b0601c"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "266e96659fd9cacc744a9bcaef9b1a71bce2dbbd8e22b236848e543687f48be9"
+  inputs-digest = "811eb2a4ff240c32bd29568f4e1a4992e8bbe9845f2713d763312b9d740e1562"
   solver-name = "gps-cdcl"
   solver-version = 1

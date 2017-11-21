@@ -22,9 +22,9 @@
 
 
 [[constraint]]
+  branch = "master"
   name = "github.com/codegangsta/cli"
-  version = "1.11.1"
 
 [[constraint]]
+  branch = "master"
   name = "github.com/mattn/go-shellwords"
-  version = "1.0.0"
