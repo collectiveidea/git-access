@@ -7,17 +7,23 @@ class GitAccessTest < Minitest::Test
     server = GitAccessServer.new([{user: 4, response: 200}])
     args = "--user 4 --permission-check-url=http://localhost:#{server.port}"
 
-    %w(git-receive-pack git-upload-pack git-upload-archive).each do |command|
+    %w(git-receive-pack git-upload-pack).each do |command|
       assert_match(
         /a git repository/,
         git_access("#{command} repo.git", args).output,
         "Wrong output for #{command}"
       )
-
-      result = git_access("cat /etc/passwd", args)
-      assert_match(/Permission denied/, result.output)
-      assert !result.status.success?
     end
+
+    assert_match(
+      /No such file or directory/,
+      git_access("git-upload-archive repo.git", args).output,
+      "Wrong output for git-upload-archive"
+    )
+
+    result = git_access("cat /etc/passwd", args)
+    assert_match(/Permission denied/, result.output)
+    assert !result.status.success?
   ensure
     server.shutdown
   end
