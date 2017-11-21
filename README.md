@@ -104,9 +104,9 @@ Restart SSH to apply the new configuration and enjoy!
 
 ## Developing
 
-`git-access` is managed and built with [gb](http://getgb.io/) so you'll need that installed first.
+`git-access` is managed and built with [go dep](https://github.com/golang/dep) so you'll need that installed first.
 
-After cloning this repository, you can build `git-access` with `gb build`.
+After cloning this repository, you can build `git-access` with `go build ./src/git-access` or `rake build`.
 
 Due to the nature of the system, the tests are high level that set up actual web servers and check that the full communication process works. As such, the easiest way I know to do this is through Ruby, so the tests require Ruby 2.0 or greater. Run tests with `rake`.
 
