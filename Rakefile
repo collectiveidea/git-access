@@ -1,6 +1,7 @@
 require 'rake/testtask'
 
 task :build do
+  rm "./git-access"
   sh "go build ./src/git-access"
 end
 
