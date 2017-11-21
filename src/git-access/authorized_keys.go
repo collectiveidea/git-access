@@ -50,14 +50,14 @@ func readKeys(url string) (keysList []UserKeys) {
 	response, err := http.Get(url)
 
 	if err != nil {
-		log.Fatalf("Error receiving keys", err)
+		log.Fatal("Error receiving keys", err)
 	}
 	defer response.Body.Close()
 
 	err = json.NewDecoder(response.Body).Decode(&keysList)
 
 	if err != nil {
-		log.Fatalf("Error parsing keys response", err)
+		log.Fatal("Error parsing keys response", err)
 	}
 
 	return

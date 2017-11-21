@@ -41,7 +41,7 @@ func RequestGitAccess(gitCommand string, userId string, permissionCheckUrl strin
 	request := validateRequest(gitCommand, userId, permissionCheckUrl)
 
 	if repoAccessAllowed(&request) {
-		log.Fatalf(
+		log.Fatal(
 			"Failed to execute command.",
 			executeOriginalRequest(&request),
 		)
@@ -60,7 +60,7 @@ func validateRequest(command string, userId string, permissionCheckUrl string) (
 
 	binaryPath, err := exec.LookPath(binary)
 	if err != nil {
-		log.Fatalf("Unknown command.", binary)
+		log.Fatal("Unknown command.", binary)
 	}
 
 	var repository string
