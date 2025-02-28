@@ -1,13 +1,13 @@
-require 'rake/testtask'
+require "rake/testtask"
 
 task :build do
   rm "./git-access"
-  sh "go build ./src/git-access"
+  sh "go build ./cmd/git-access"
 end
 
 desc "Build cross-compiled binaries"
 task :release do
-  sh "GOOS=linux GOARCH=amd64 go build ./src/git-access"
+  sh "GOOS=linux GOARCH=amd64 go build ./cmd/git-access"
 end
 
 task :vet do
@@ -15,8 +15,8 @@ task :vet do
 end
 
 Rake::TestTask.new do |t|
-  t.libs = %w(test)
+  t.libs = %w[test]
   t.pattern = "test/*_test.rb"
 end
 
-task default: [:build, :test, :vet]
+task default: %i[build test vet]

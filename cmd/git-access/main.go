@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/codegangsta/cli"
 	"log"
 	"log/syslog"
 	"os"
+
+	"github.com/urfave/cli"
 )
 
 func main() {

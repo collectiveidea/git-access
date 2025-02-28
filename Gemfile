@@ -1,6 +1,8 @@
+source "https://rubygems.org"
+
 group :test do
-  gem "minitest"
-  gem "rack"
-  gem "thin"
   gem "json"
+  gem "minitest"
+  gem "puma"
+  gem "rack"
 end

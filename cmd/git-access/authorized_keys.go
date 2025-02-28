@@ -24,12 +24,11 @@ type UserKeys struct {
 // The response is expected to be a JSON array with each entry including the user_id
 // and a list of keys for that user:
 //
-//   [
-//     { user: "1", keys: ["ssh-rsa AAA...==", "ssh-rsa AAB...=="]},
-//     { user: "2", keys: ["ssh-rsa AAD...=="]},
-//     ...
-//   ]
-//
+//	[
+//	  { user: "1", keys: ["ssh-rsa AAA...==", "ssh-rsa AAB...=="]},
+//	  { user: "2", keys: ["ssh-rsa AAD...=="]},
+//	  ...
+//	]
 func RequestAuthorizedKeys(commandBinary string, keysUrl string) {
 	users := readKeys(keysUrl)
 

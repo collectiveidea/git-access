@@ -1,43 +1,34 @@
-require 'rack'
-require 'thin'
-require 'json'
+require "rack"
+require "puma"
+require "json"
 
 class AuthorizedKeysServer
-  attr_reader :port
-  attr_reader :keys
+  attr_reader :url
 
   def initialize
-    @port = (rand * 10000 + 1000).to_i
-
     @keys = [
-      {user_id: 1, keys: ["ssh-rsa AAA1...== something@example"]},
-      {user_id: 2, keys: ["ssh-dsa ABC2...==", "ssh-rsa AAA3...== me@host"]}
+      { user_id: 1, keys: ["ssh-rsa AAA1...== something@example"] },
+      { user_id: 2, keys: ["ssh-dsa ABC2...==", "ssh-rsa AAA3...== me@host"] },
     ]
+
+    @server = Puma::Server.new(
+      ->(_env) do
+        [ 200, { "Content-Type" => "application/json" }, [ @keys.to_json ] ]
+      end,
+    )
+
+    socket = @server.add_tcp_listener("127.0.0.1", 0)
+    addr   = socket.addr(:numeric)
+    @url   = "http://#{addr[3]}:#{addr[1]}/"
 
     start
   end
 
   def start
-    Thin::Logging.silent = true
-    Thread.abort_on_exception = true
-
-    @server_thread = Thread.new do
-      Rack::Handler::Thin.run RackHandler.new(@keys), :Port => @port
-    end
-    sleep 1
+    @server.run(true)
   end
 
   def shutdown
-    @server_thread.kill
-  end
-
-  class RackHandler
-    def initialize(keys)
-      @keys = keys
-    end
-
-    def call(env)
-      [ 200, { "Content-Type" => "application/json" }, [ @keys.to_json ] ]
-    end
+    @server.halt
   end
 end

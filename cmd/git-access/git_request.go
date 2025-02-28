@@ -1,13 +1,14 @@
 package main
 
 import (
-	shellwords "github.com/mattn/go-shellwords"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os/exec"
 	"strings"
 	"syscall"
+
+	shellwords "github.com/mattn/go-shellwords"
 )
 
 type CommandRequest struct {
@@ -104,7 +105,7 @@ func repoAccessAllowed(request *CommandRequest) bool {
 
 	responseSuccess := response.StatusCode >= 200 && response.StatusCode < 300
 
-	body, _ := ioutil.ReadAll(response.Body)
+	body, _ := io.ReadAll(response.Body)
 	request.RewriteRepository(strings.TrimSpace(string(body)))
 
 	return responseSuccess
